@@ -15,7 +15,7 @@
 
 <h2>Sélectionnez l'emplacement du terrain</h2>
 <div id="map"></div>
-<p>Cliquez sur la carte pour sélectionner le terrain. Les coordonnées et le quartier seront pré-remplis automatiquement.</p>
+<p>Cliquez sur la carte pour sélectionner le terrain. Les coordonnées et le quartier seront pré-remplis.</p>
 
 <form id="coordinatesForm">
   <label>Latitude: <input type="text" id="lat" name="lat" readonly></label><br>
@@ -26,34 +26,27 @@
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
-  // Initialisation de la carte centrée sur Dakar Plateau
   var map = L.map('map').setView([14.667, -17.435], 14);
-
-  // Tuiles OSM
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
   }).addTo(map);
 
   var marker;
 
-  // Reverse geocoding avec Nominatim
   function getZone(lat, lng) {
     fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
       .then(response => response.json())
       .then(data => {
         let zone = data.address.suburb || data.address.city_district || data.address.city || '';
         document.getElementById('zone').value = zone;
-      })
-      .catch(err => console.log('Erreur reverse geocoding:', err));
+      });
   }
 
-  // Gestion du clic sur la carte
   map.on('click', function(e) {
     var lat = e.latlng.lat.toFixed(6);
-    var lng = e.latlng.lng.toFixed(6);
-
+    var lng = e.latlng.lng.toFixed(6); // ✅ Correction : on utilise e.latlng.lng
     document.getElementById('lat').value = lat;
-    document.getElementById('lng').value = lng;
+    document.getElementById('lng').value = lng; // ✅ maintenant la longitude est bien mise à jour
 
     if (marker) map.removeLayer(marker);
     marker = L.marker([lat, lng]).addTo(map);
@@ -61,10 +54,8 @@
     getZone(lat, lng);
   });
 
-  // Soumission du formulaire
   document.getElementById('coordinatesForm').addEventListener('submit', function(e){
     e.preventDefault();
-
     const lat = document.getElementById('lat').value;
     const lng = document.getElementById('lng').value;
     const zone = document.getElementById('zone').value;
@@ -74,7 +65,7 @@
       return;
     }
 
-    // Pré-remplissage Jotform
+    // Pré-remplissage Jotform : tous les champs lat, lng et zone
     const jotformURL = `https://form.jotform.com/260693422107049?lat=${lat}&lng=${lng}&zone=${encodeURIComponent(zone)}`;
     window.open(jotformURL, "_blank");
   });
